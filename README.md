@@ -5,6 +5,15 @@ This library captures `setTimeout`, `setImmediate`and AJAX requests through `XML
 notifies them to [testability.js](https://github.com/alfonso-presa/testability.js) so that it automatically
 handles applicaton state for testing frameworks.
 
+## Automatic non testability state detection
+
+It will report untestable applicaton state automcatically for the following async events:
+
+* Ajax requests with `XmlHttpRequest`
+* `setTimeout`/`clearTimeout`: only if it's time is below 5 seconds, because otherwise it's considered a timeout.
+* `setImmediate`/`clearImmediate`
+* `fetch`
+
 ## See
 
 - [testability.js](https://github.com/alfonso-presa/testability.js): acts as testability broker.
