@@ -94,6 +94,20 @@ describe('testability bindings', function () {
                 expect(oneMore.notCalled).toEqual(true);
             });
 
+            it('should wait if timeouts are chained', function () {
+                setTimeout(function () {
+                    setTimeout(sinon.spy());
+                });
+                window.testability.when.ready(testabilityCallBack);
+
+                expect(oneMore.calledOnce).toEqual(true);
+                expect(testabilityCallBack.notCalled).toEqual(true);
+                clock.tick(1);
+                expect(testabilityCallBack.notCalled).toEqual(true);
+                clock.tick(1);
+                expect(testabilityCallBack.calledOnce).toEqual(true);
+            });
+
         });
 
         describe('setImmediate', function () {
@@ -118,6 +132,20 @@ describe('testability bindings', function () {
                 clearImmediate(id);
                 clock.tick();
 
+                expect(testabilityCallBack.calledOnce).toEqual(true);
+            });
+
+            it('should wait if immediates are chained', function () {
+                setImmediate(function () {
+                    setImmediate(sinon.spy());
+                });
+                window.testability.when.ready(testabilityCallBack);
+
+                expect(oneMore.calledOnce).toEqual(true);
+                expect(testabilityCallBack.notCalled).toEqual(true);
+                clock.tick(1);
+                expect(testabilityCallBack.notCalled).toEqual(true);
+                clock.tick(1);
                 expect(testabilityCallBack.calledOnce).toEqual(true);
             });
 
