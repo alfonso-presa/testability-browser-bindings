@@ -17,6 +17,6 @@
     "sinon": "^1.17.6"
   },
   "dependencies": {
-    "testability.js": "^0.2.0"
+    "testability.js": "^0.3.0"
   }
 }
