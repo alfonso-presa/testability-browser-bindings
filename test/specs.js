@@ -78,6 +78,20 @@ describe('testability bindings', function () {
                 expect(testabilityCallBack.calledOnce).toEqual(true);
             });
 
+            it('should make testability wait if invoked with time less than 5 secs', function () {
+                function loopTimeout() {
+                    setTimeout(loopTimeout,50);
+                }
+
+                loopTimeout();
+                window.testability.when.ready(testabilityCallBack);
+
+                expect(oneMore.calledOnce).toEqual(true);
+                expect(testabilityCallBack.notCalled).toEqual(true);
+                clock.tick(51);
+                expect(testabilityCallBack.calledOnce).toEqual(true);
+            });
+
             it('should report testability if clear is invoked', function () {
                 var id = setTimeout(sinon.spy(),50);
                 window.testability.when.ready(testabilityCallBack);
