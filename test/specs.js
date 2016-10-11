@@ -1,3 +1,4 @@
+/* global expect, describe, it, beforeEach, afterEach, sinon, instrumentBrowser */
 'use strict';
 
 describe('testability bindings', function () {
@@ -43,7 +44,12 @@ describe('testability bindings', function () {
 
         instrumentation.restore();
 
-        fetch.restore ? fetch.restore() : window.fetch = undefined;
+        if (fetch.restore) {
+            fetch.restore();
+        }
+        else {
+            window.fetch = undefined;
+        }
         xhr.restore();
         clock.restore();
     });
@@ -155,15 +161,20 @@ describe('testability bindings', function () {
 
     describe('XMLHttpRequest', function () {
 
+
         it('should make testability wait when request is pending', function () {
             var req = new XMLHttpRequest();
-            req.open("GET", "http://does.not.exist");
+            req.open('GET', 'http://does.not.exist');
             req.send();
 
             window.testability.when.ready(testabilityCallBack);
+            expect(testabilityCallBack.calledOnce).toEqual(false);
+
+            req.autoRespondAfter = 10;
+            req.respond(200, {},'');
+
             expect(oneMore.calledOnce).toEqual(true);
 
-            req.respond(200, {},'');
             clock.tick();
 
             expect(testabilityCallBack.calledOnce).toEqual(true);
@@ -171,19 +182,18 @@ describe('testability bindings', function () {
 
         it('should make testability wait when request is pending and resolve when error', function () {
             var req = new XMLHttpRequest();
-            req.open("GET", "http://does.not.exist");
+            req.open('GET', 'http://does.not.exist');
             req.send();
 
             window.testability.when.ready(testabilityCallBack);
             expect(oneMore.calledOnce).toEqual(true);
 
-            req.statusText = "abort";
+            req.statusText = 'abort';
             req.abort();
             clock.tick();
 
             expect(testabilityCallBack.calledOnce).toEqual(true);
         });
-
     });
 
     describe('fetch', function () {
