@@ -4,7 +4,7 @@
   "description": "Instruments browser for automatic application testability state detection",
   "main": "lib/index.js",
   "scripts": {
-    "test": "./node_modules/.bin/jshint {test,lib}/*.js && ./node_modules/.bin/karma start --single-run"
+    "test": "./node_modules/.bin/jshint test/*.js lib/*.js && ./node_modules/.bin/karma start --single-run || false"
   },
   "author": "",
   "license": "ISC",
