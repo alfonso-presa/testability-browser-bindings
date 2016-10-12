@@ -42,6 +42,26 @@ describe('animation handling', function () {
         return element;
     }
 
+    function performWebAnimation(iterations) {
+        var id = 'id' + ('' + Math.random()).substring(2);
+
+        var element = document.createElement('div');
+        element.innerText='hi!';
+        element.id = id;
+        document.getElementsByTagName('body')[0].appendChild(element);
+
+        element.animate({
+            opacity: [0.5, 1],
+            transform: ['scale(0.5)', 'scale(1)'],
+        }, {
+            direction: 'alternate',
+            duration: 500,
+            iterations: iterations,
+        });
+
+        return element;
+    }
+
     function performInfiniteAnimation() {
         var id = 'id' + ('' + Math.random()).substring(2);
 
@@ -122,5 +142,23 @@ describe('animation handling', function () {
         });
 
     });
+
+    it('should wait for animaton api', function (done) {
+
+        expect(oneMore.notCalled).toEqual(true);
+        performWebAnimation(1);
+
+        expect(oneMore.notCalled).toEqual(false);
+        window.testability.when.ready(done);
+
+    });
+
+    it('should not wait for infinite animaton api', function (done) {
+
+        performWebAnimation(Infinity);
+        window.testability.when.ready(done);
+
+    });
+
 
 });

@@ -22,6 +22,8 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+        'node_modules/es6-promise/dist/es6-promise.auto.js',
+        'node_modules/web-animations-js/web-animations-next.min.js',
         'node_modules/testability.js/dist/testability.js',
         'lib/index.js',
         'test/*.js'
