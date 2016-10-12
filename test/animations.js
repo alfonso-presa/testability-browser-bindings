@@ -1,0 +1,82 @@
+/* global expect, describe, it, beforeEach, afterEach, sinon, instrumentBrowser */
+'use strict';
+
+describe('animation handling', function () {
+
+    var oneMore;
+    var oneLess;
+    var testabilityCallBack;
+    var setTimeout = window.setTimeout;
+
+    var instrumentation;
+
+    beforeEach(function () {
+        testabilityCallBack = sinon.spy();
+
+        oneMore = sinon.spy(window.testability.wait, 'oneMore');
+        oneLess = sinon.spy(window.testability.wait, 'oneLess');
+
+        instrumentation = instrumentBrowser(window);
+    });
+
+    afterEach(function () {
+        oneMore.restore();
+        oneLess.restore();
+
+        instrumentation.restore();
+    });
+
+    it('should wait for animations to complete', function (done) {
+
+        var element = performAnimation();
+
+        element.addEventListener('webkitAnimationStart', function () {
+            setTimeout(function () {
+                expect(oneMore.calledOnce).toEqual(true);
+                window.testability.when.ready(testabilityCallBack);
+            });
+        });
+
+        element.addEventListener('webkitAnimationEnd', function () {
+            setTimeout(function () {
+                expect(testabilityCallBack.calledOnce).toEqual(true);
+                done();
+            },10);
+        });
+
+    });
+
+
+    function performAnimation() {
+        var id = 'id' + ('' + Math.random()).substring(2);
+
+        var style = document.createElement('style');
+        style.innerHTML = ''+
+        '    div#'+id+'  '+
+        '    {  '+
+        '        -webkit-animation: flash'+id+' 10ms ease 3;    '+
+        '        -moz-animation: flash'+id+' 10ms ease 3;   '+
+        '        -ms-animation: flash'+id+' 10ms ease 3;    '+
+        '        -o-animation: flash'+id+' 10ms ease 3; '+
+        '        animation: flash'+id+' 10ms ease 3;    '+
+        '    }  '+
+
+        '    @-webkit-keyframes flash'+id+' {    '+
+        '        50% { opacity: 0; }    '+
+        '    }  '+
+
+        '    @keyframes flash'+id+' {    '+
+        '        50% { opacity: 0; }    '+
+        '    }  '+
+        '';
+        document.getElementsByTagName('head')[0].appendChild(style);
+
+        var element = document.createElement('div');
+        element.innerText='hi!';
+        element.id = id;
+        document.getElementsByTagName('body')[0].appendChild(element);
+
+        return element;
+    }
+
+});
