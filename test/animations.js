@@ -62,14 +62,14 @@ describe('animation handling', function () {
 
         var element = performAnimation();
 
-        element.addEventListener('webkitAnimationStart', function () {
+        element.addEventListener(instrumentation.animationEvents.animationstart, function () {
             setTimeout(function () {
                 expect(oneMore.calledOnce).toEqual(true);
                 window.testability.when.ready(testabilityCallBack);
             });
         });
 
-        element.addEventListener('webkitAnimationEnd', function () {
+        element.addEventListener(instrumentation.animationEvents.animationend, function () {
             setTimeout(function () {
                 expect(testabilityCallBack.calledOnce).toEqual(true);
                 done();
