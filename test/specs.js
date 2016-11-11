@@ -68,6 +68,28 @@ describe('testability bindings', function () {
                 expect(testabilityCallBack.calledOnce).toEqual(true);
             });
 
+            it('should make testability wait until timeout function fails and should raise the exception', function () {
+                var exception; 
+                
+                setTimeout(function () {
+                    throw 'errored on purpose';
+                });
+                window.testability.when.ready(testabilityCallBack);
+
+                expect(oneMore.calledOnce).toEqual(true);
+                expect(testabilityCallBack.notCalled).toEqual(true);
+
+                try {
+                    clock.tick(1);
+                }
+                catch(e) {
+                    exception = e;
+                }
+
+                expect(exception).not.toBeUndefined();
+                expect(testabilityCallBack.calledOnce).toEqual(true);
+            });
+
             it('should make testability wait if invoked with time less than 5 secs', function () {
                 setTimeout(sinon.spy(),50);
                 window.testability.when.ready(testabilityCallBack);
