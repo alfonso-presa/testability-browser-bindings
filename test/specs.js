@@ -35,7 +35,9 @@ describe('testability bindings', function () {
             }
         });
 
-        instrumentation = instrumentBrowser(window);
+        var configs = { maxTimeout: 5000, blacklist: [{url: '.*black\.listed.*', method: 'GET'}] };
+
+        instrumentation = instrumentBrowser(window, configs);
     });
 
     afterEach(function () {
@@ -254,6 +256,23 @@ describe('testability bindings', function () {
 
             expect(testabilityCallBack.calledOnce).toEqual(true);
         });
+        it('should not make testability wait when request is done against blacklisted url', function () {
+            var req = new XMLHttpRequest();
+            req.open('GET', 'http://black.listed.url/shouldnttrigger');
+            req.send();
+
+            window.testability.when.ready(testabilityCallBack);
+            expect(testabilityCallBack.calledOnce).toEqual(true);
+
+            req.autoRespondAfter = 10;
+            req.respond(200, {},'');
+
+            expect(oneMore.calledOnce).toEqual(false);
+
+            clock.tick();
+
+            expect(testabilityCallBack.calledOnce).toEqual(true);
+        });
     });
 
     describe('fetch', function () {
@@ -279,6 +298,16 @@ describe('testability bindings', function () {
             fetchFailResolve();
             clock.tick();
 
+            expect(testabilityCallBack.calledOnce).toEqual(true);
+        });
+        it('should not make testability wait when request is blacklist', function () {
+            window.fetch('http://black.listed.url/blacklisted', {method: 'get'});
+
+            window.testability.when.ready(testabilityCallBack);
+            expect(oneMore.calledOnce).toEqual(false);
+            fetchFailResolve();
+            clock.tick();
+            expect(oneMore.calledOnce).toEqual(false);
             expect(testabilityCallBack.calledOnce).toEqual(true);
         });
     });
