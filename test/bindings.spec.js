@@ -1,7 +1,3 @@
-/* global expect, describe, it, beforeEach, afterEach, sinon, instrumentBrowser */
-'use strict';
-
-
 describe('testability bindings', function () {
 
     var oneMore;
@@ -49,7 +45,7 @@ describe('testability bindings', function () {
             setInterval: fakeBuilder(window.setInterval),
             clearTimeout: fakeBuilder(window.clearTimeout),
             clearImmediate: fakeBuilder(window.clearImmediate || window.clearTimeout),
-            clearInterval: fakeBuilder(window.clearInterval),
+            clearInterval: fakeBuilder(window.clearInterval)
         };
 
         oneMore = sinon.spy(window.testability.wait, 'oneMore');

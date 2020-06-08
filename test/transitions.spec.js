@@ -1,6 +1,3 @@
-/* global expect, describe, it, beforeEach, afterEach, sinon, instrumentBrowser */
-'use strict';
-
 describe('transitions handling', function () {
 
     var oneMore;
