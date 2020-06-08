@@ -1,6 +1,3 @@
-/* global expect, describe, it, beforeEach, afterEach, sinon, instrumentBrowser */
-'use strict';
-
 describe('animation handling', function () {
 
     var oneMore;
@@ -52,11 +49,11 @@ describe('animation handling', function () {
 
         element.animate({
             opacity: [0.5, 1],
-            transform: ['scale(0.5)', 'scale(1)'],
+            transform: ['scale(0.5)', 'scale(1)']
         }, {
             direction: 'alternate',
             duration: 500,
-            iterations: iterations,
+            iterations: iterations
         });
 
         return element;

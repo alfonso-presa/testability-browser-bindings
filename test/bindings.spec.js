@@ -1,6 +1,3 @@
-/* global expect, describe, it, beforeEach, afterEach, sinon, instrumentBrowser */
-'use strict';
-
 describe('testability bindings', function () {
 
     var oneMore;
@@ -13,17 +10,21 @@ describe('testability bindings', function () {
     var fetch;
     var fetchOkResolve;
     var fetchFailResolve;
+    var fakeWindow;
 
     beforeEach(function () {
+        function fakeBuilder(method) {
+            return function () {
+                return method.apply(window, arguments);
+            };
+        }
+
+        clock = sinon.useFakeTimers();
+        xhr = sinon.useFakeXMLHttpRequest();
+
         testabilityCallBack = sinon.spy();
 
-        oneMore = sinon.spy(window.testability.wait, 'oneMore');
-        oneLess = sinon.spy(window.testability.wait, 'oneLess');
-
-        xhr = sinon.useFakeXMLHttpRequest();
-        clock = sinon.useFakeTimers();
-
-        fetch = window.fetch ? sinon.stub(window, 'fetch') : window.fetch = sinon.stub();
+        fetch = sinon.stub();
         fetch.returns({
             then: function (callback) {
                 fetchOkResolve = callback;
@@ -35,16 +36,31 @@ describe('testability bindings', function () {
             }
         });
 
+        fakeWindow = {
+            testability: window.testability,
+            fetch: fetch,
+            XMLHttpRequest: window.XMLHttpRequest,
+            setTimeout: fakeBuilder(window.setTimeout),
+            setImmediate: fakeBuilder(window.setImmediate || window.setTimeout),
+            setInterval: fakeBuilder(window.setInterval),
+            clearTimeout: fakeBuilder(window.clearTimeout),
+            clearImmediate: fakeBuilder(window.clearImmediate || window.clearTimeout),
+            clearInterval: fakeBuilder(window.clearInterval)
+        };
+
+        oneMore = sinon.spy(window.testability.wait, 'oneMore');
+        oneLess = sinon.spy(window.testability.wait, 'oneLess');
+
         var configs = { maxTimeout: 5000, blacklist: [{url: '.*black\.listed.*', method: 'GET'}] };
 
-        instrumentation = instrumentBrowser(window, configs);
+        instrumentation = instrumentBrowser(fakeWindow, configs);
     });
 
     afterEach(function () {
+        instrumentation.restore();
+
         oneMore.restore();
         oneLess.restore();
-
-        instrumentation.restore();
 
         if (fetch.restore) {
             fetch.restore();
@@ -54,14 +70,16 @@ describe('testability bindings', function () {
         }
         xhr.restore();
         clock.restore();
+        fetchOkResolve = undefined;
+        fetchFailResolve = undefined;
     });
 
-    describe('timming', function () {
+    describe('timing', function () {
 
         describe('setTimeout', function () {
 
             it('should make testability wait if invoked without time', function () {
-                setTimeout(sinon.spy());
+                fakeWindow.setTimeout(sinon.spy());
                 window.testability.when.ready(testabilityCallBack);
 
                 expect(oneMore.calledOnce).toEqual(true);
@@ -71,9 +89,9 @@ describe('testability bindings', function () {
             });
 
             it('should make testability wait until timeout function fails and should raise the exception', function () {
-                var exception; 
-                
-                setTimeout(function () {
+                var exception;
+
+                fakeWindow.setTimeout(function () {
                     throw 'errored on purpose';
                 });
                 window.testability.when.ready(testabilityCallBack);
@@ -93,7 +111,7 @@ describe('testability bindings', function () {
             });
 
             it('should make testability wait if invoked with time less than 5 secs', function () {
-                setTimeout(sinon.spy(),50);
+                fakeWindow.setTimeout(sinon.spy(),50);
                 window.testability.when.ready(testabilityCallBack);
 
                 expect(oneMore.calledOnce).toEqual(true);
@@ -104,7 +122,7 @@ describe('testability bindings', function () {
 
             it('should not make testability wait if invoked recursively withing same function', function () {
                 function loopTimeout() {
-                    setTimeout(loopTimeout,50);
+                    fakeWindow.setTimeout(loopTimeout,50);
                 }
 
                 loopTimeout();
@@ -116,7 +134,7 @@ describe('testability bindings', function () {
                 expect(testabilityCallBack.calledOnce).toEqual(true);
             });
 
-            it('should make testability wait if invoked recursively with a diferent function', function () {
+            it('should make testability wait if invoked recursively with a different function', function () {
                 var passed = false;
                 function loopTimeout() {
                     function doLoopTimeout() {
@@ -125,7 +143,7 @@ describe('testability bindings', function () {
                             passed = true;
                         }
                     }
-                    setTimeout(doLoopTimeout,50);
+                    fakeWindow.setTimeout(doLoopTimeout,50);
                 }
 
                 loopTimeout();
@@ -141,20 +159,20 @@ describe('testability bindings', function () {
             });
 
             it('should report testability if clear is invoked', function () {
-                var id = setTimeout(sinon.spy(),50);
+                var id = fakeWindow.setTimeout(sinon.spy(),50);
                 window.testability.when.ready(testabilityCallBack);
 
                 expect(oneMore.calledOnce).toEqual(true);
                 expect(testabilityCallBack.notCalled).toEqual(true);
 
-                clearTimeout(id);
+                fakeWindow.clearTimeout(id);
                 clock.tick();
 
                 expect(testabilityCallBack.calledOnce).toEqual(true);
             });
 
             it('should not make testability wait if invoked with time more than 5 secs', function () {
-                setTimeout(sinon.spy(),5001);
+                fakeWindow.setTimeout(sinon.spy(),5001);
                 window.testability.when.ready(testabilityCallBack);
 
                 expect(testabilityCallBack.calledOnce).toEqual(true);
@@ -163,8 +181,8 @@ describe('testability bindings', function () {
             });
 
             it('should wait if timeouts are chained', function () {
-                setTimeout(function () {
-                    setTimeout(sinon.spy());
+                fakeWindow.setTimeout(function () {
+                    fakeWindow.setTimeout(sinon.spy());
                 });
                 window.testability.when.ready(testabilityCallBack);
 
@@ -176,12 +194,8 @@ describe('testability bindings', function () {
                 expect(testabilityCallBack.calledOnce).toEqual(true);
             });
 
-        });
-
-        describe('setImmediate', function () {
-
             it('should make testability wait when invoked', function () {
-                setImmediate(sinon.spy());
+                fakeWindow.setImmediate(sinon.spy());
                 window.testability.when.ready(testabilityCallBack);
 
                 expect(oneMore.calledOnce).toEqual(true);
@@ -191,21 +205,21 @@ describe('testability bindings', function () {
             });
 
             it('should report testability if clear is invoked', function () {
-                var id = setImmediate(sinon.spy());
+                var id = fakeWindow.setImmediate(sinon.spy());
                 window.testability.when.ready(testabilityCallBack);
 
                 expect(oneMore.calledOnce).toEqual(true);
                 expect(testabilityCallBack.notCalled).toEqual(true);
 
-                clearImmediate(id);
+                fakeWindow.clearImmediate(id);
                 clock.tick();
 
                 expect(testabilityCallBack.calledOnce).toEqual(true);
             });
 
-            it('should wait if immediates are chained', function () {
-                setImmediate(function () {
-                    setImmediate(sinon.spy());
+            it('should wait if immediate is chained', function () {
+                fakeWindow.setImmediate(function () {
+                    fakeWindow.setImmediate(sinon.spy());
                 });
                 window.testability.when.ready(testabilityCallBack);
 
@@ -225,7 +239,7 @@ describe('testability bindings', function () {
 
 
         it('should make testability wait when request is pending', function () {
-            var req = new XMLHttpRequest();
+            var req = new fakeWindow.XMLHttpRequest();
             req.open('GET', 'http://does.not.exist');
             req.send();
 
@@ -243,7 +257,7 @@ describe('testability bindings', function () {
         });
 
         it('should make testability wait when request is pending and resolve when error', function () {
-            var req = new XMLHttpRequest();
+            var req = new fakeWindow.XMLHttpRequest();
             req.open('GET', 'http://does.not.exist');
             req.send();
 
@@ -256,8 +270,9 @@ describe('testability bindings', function () {
 
             expect(testabilityCallBack.calledOnce).toEqual(true);
         });
+
         it('should not make testability wait when request is done against blacklisted url', function () {
-            var req = new XMLHttpRequest();
+            var req = new fakeWindow.XMLHttpRequest();
             req.open('GET', 'http://black.listed.url/shouldnttrigger');
             req.send();
 
@@ -278,11 +293,12 @@ describe('testability bindings', function () {
     describe('fetch', function () {
 
         it('should make testability wait when request is pending', function () {
-            window.fetch('http://does.not.exist', {method: 'get'});
+            fakeWindow.fetch('http://does.not.exist', {method: 'get'});
 
             window.testability.when.ready(testabilityCallBack);
             expect(oneMore.calledOnce).toEqual(true);
 
+            clock.tick();
             fetchOkResolve();
             clock.tick();
 
@@ -290,24 +306,21 @@ describe('testability bindings', function () {
         });
 
         it('should make testability wait when request is pending and report when failed', function () {
-            window.fetch('http://does.not.exist', {method: 'get'});
+            fakeWindow.fetch('http://does.not.exist', {method: 'get'});
 
             window.testability.when.ready(testabilityCallBack);
             expect(oneMore.calledOnce).toEqual(true);
 
+            clock.tick();
             fetchFailResolve();
             clock.tick();
 
             expect(testabilityCallBack.calledOnce).toEqual(true);
         });
-        it('should not make testability wait when request is blacklist', function () {
-            window.fetch('http://black.listed.url/blacklisted', {method: 'get'});
 
+        it('should not make testability wait when request in blacklist', function () {
+            fakeWindow.fetch('http://black.listed.url/blacklisted', {method: 'get'});
             window.testability.when.ready(testabilityCallBack);
-            expect(oneMore.calledOnce).toEqual(false);
-            fetchFailResolve();
-            clock.tick();
-            expect(oneMore.calledOnce).toEqual(false);
             expect(testabilityCallBack.calledOnce).toEqual(true);
         });
     });
