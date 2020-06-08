@@ -1,0 +1,8 @@
+{
+    "parserOptions": {
+        "ecmaVersion": 3
+    },
+    "rules": {
+        "semi": "error"
+    }
+}
