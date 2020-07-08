@@ -2,7 +2,7 @@ describe('transitions handling', function () {
 
     var oneMore;
     var oneLess;
-    var element;
+    var elements = [];
     var testabilityCallBack;
     var setTimeout = window.setTimeout;
 
@@ -34,6 +34,8 @@ describe('transitions handling', function () {
         element.id = id;
         document.getElementsByTagName('body')[0].appendChild(element);
 
+        elements.push(style);
+        elements.push(element);
         return element;
     }
 
@@ -47,22 +49,23 @@ describe('transitions handling', function () {
     });
 
     afterEach(function () {
-        if(element) {
-            element.remove();
-        }
         oneMore.restore();
         oneLess.restore();
 
         instrumentation.restore();
+
+        elements.forEach(e => e.remove());
+        elements = [];
+
     });
 
     it('should wait for transitions to complete', function (done) {
 
-        element = performTransition();
+        var element = performTransition();
 
         element.addEventListener(instrumentation.animationEvents.transitionstart, function () {
             setTimeout(function () {
-                expect(oneMore.calledOnce).toEqual(true);
+                expect(oneMore.calledTwice).toEqual(true);
                 window.testability.when.ready(testabilityCallBack);
             });
         });

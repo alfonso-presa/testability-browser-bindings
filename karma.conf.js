@@ -17,7 +17,8 @@ module.exports = function(config) {
     files: [
       'node_modules/testability.js/dist/testability.js',
       'lib/index.js',
-      'test/*.spec.js'
+      'test/*.spec.js',
+      { pattern: 'test/mocks/*.*', included: false, served: true}
     ],
 
 
