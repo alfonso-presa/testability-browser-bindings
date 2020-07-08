@@ -4,6 +4,7 @@ describe('animation handling', function () {
     var oneLess;
     var testabilityCallBack;
     var setTimeout = window.setTimeout;
+    var elements = [];
 
     var instrumentation;
 
@@ -11,7 +12,7 @@ describe('animation handling', function () {
         var id = 'id' + ('' + Math.random()).substring(2);
 
         var style = document.createElement('style');
-        style.innerHTML = ''+
+        style.innerText = ''+
         '    div#'+id+'  '+
         '    {  '+
         '        -webkit-animation: flash'+id+' 10ms ease 3;    '+
@@ -36,6 +37,8 @@ describe('animation handling', function () {
         element.id = id;
         document.getElementsByTagName('body')[0].appendChild(element);
 
+        elements.push(style);
+        elements.push(element);
         return element;
     }
 
@@ -55,6 +58,8 @@ describe('animation handling', function () {
             duration: 500,
             iterations: iterations
         });
+
+        elements.push(element);
 
         return element;
     }
@@ -88,6 +93,9 @@ describe('animation handling', function () {
         element.id = id;
         document.getElementsByTagName('body')[0].appendChild(element);
 
+        elements.push(style);
+        elements.push(element);
+
         return element;
     }
 
@@ -105,6 +113,8 @@ describe('animation handling', function () {
         oneLess.restore();
 
         instrumentation.restore();
+        testability.reset();
+        elements.forEach(e => e.remove());
     });
 
     it('should wait for animations to complete', function (done) {
@@ -113,14 +123,13 @@ describe('animation handling', function () {
 
         element.addEventListener(instrumentation.animationEvents.animationstart, function () {
             setTimeout(function () {
-                expect(oneMore.calledOnce).toEqual(true);
                 window.testability.when.ready(testabilityCallBack);
             });
         });
 
         element.addEventListener(instrumentation.animationEvents.animationend, function () {
             setTimeout(function () {
-                expect(testabilityCallBack.calledOnce).toEqual(true);
+                expect(testabilityCallBack.calledOnce).toBeTrue();
                 done();
             },10);
         });
@@ -133,14 +142,13 @@ describe('animation handling', function () {
 
         element.addEventListener(instrumentation.animationEvents.animationstart, function () {
             setTimeout(function () {
-                expect(oneMore.calledOnce).toEqual(false);
                 window.testability.when.ready(done);
             });
         });
 
     });
 
-    it('should wait for animaton api', function (done) {
+    it('should wait for animation api', function (done) {
 
         expect(oneMore.notCalled).toEqual(true);
         performWebAnimation(1);
