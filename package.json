@@ -1,12 +1,12 @@
 {
   "name": "testability-browser-bindings",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "description": "Instruments browser for automatic application testability state detection",
   "main": "lib/index.js",
   "scripts": {
-    "lint": "./node_modules/.bin/eslint test/*.js lib/*.js",
+    "lint": "eslint test/*.js lib/*.js",
     "test": "npm run lint && npm run test:unit",
-    "test:unit": "./node_modules/.bin/karma start --single-run || false"
+    "test:unit": "karma start --single-run || false"
   },
   "author": "",
   "license": "ISC",

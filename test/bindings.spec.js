@@ -134,16 +134,9 @@ describe('testability bindings', function () {
                 expect(testabilityCallBack.calledOnce).toEqual(true);
             });
 
-            it('should make testability wait if invoked recursively with a different function', function () {
-                var passed = false;
+            it('should not make testability wait if invoked recursively within lambda', function () {
                 function loopTimeout() {
-                    function doLoopTimeout() {
-                        if(!passed) {
-                            loopTimeout();
-                            passed = true;
-                        }
-                    }
-                    fakeWindow.setTimeout(doLoopTimeout,50);
+                    fakeWindow.setTimeout(() => loopTimeout(),50);
                 }
 
                 loopTimeout();
@@ -152,11 +145,8 @@ describe('testability bindings', function () {
                 expect(oneMore.calledOnce).toEqual(true);
                 expect(testabilityCallBack.notCalled).toEqual(true);
                 clock.tick(51);
-                expect(testabilityCallBack.notCalled).toEqual(true);
-                clock.tick(51);
                 expect(testabilityCallBack.calledOnce).toEqual(true);
-                expect(passed).toEqual(true);
-            });
+            });            
 
             it('should report testability if clear is invoked', function () {
                 var id = fakeWindow.setTimeout(sinon.spy(),50);
