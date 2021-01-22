@@ -1,6 +1,6 @@
 {
   "name": "testability-browser-bindings",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Instruments browser for automatic application testability state detection",
   "main": "lib/index.js",
   "scripts": {
