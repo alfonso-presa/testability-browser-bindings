@@ -1,6 +1,6 @@
 {
   "name": "testability-browser-bindings",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Instruments browser for automatic application testability state detection",
   "main": "lib/index.js",
   "scripts": {
@@ -11,11 +11,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "jasmine-core": "^3.5.0",
     "eslint": "^7.2.0",
+    "jasmine-core": "^3.5.0",
     "karma": "^5.0.9",
-    "karma-jasmine": "^1.0.2",
     "karma-chrome-launcher": "^3.1.0",
+    "karma-jasmine": "^1.0.2",
     "karma-sinon": "^1.0.5",
     "sinon": "^9.0.2"
   },
